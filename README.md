@@ -1,5 +1,5 @@
 # graylog-adfs
-ADFS Content Pack for Graylog
+ADFS Content Pack for Graylog. Based on ADFS 3.0 (Windows 2012 R2)
 
 ## Contains ##
 * an input for ADFS event logs
