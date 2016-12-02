@@ -1,0 +1,275 @@
+{
+    "category": "Operating Systems",
+    "dashboards": [
+        {
+            "dashboard_widgets": [
+                {
+                    "cache_time": 10,
+                    "col": 1,
+                    "configuration": {
+                        "lower_is_better": true,
+                        "query": "gl2_source_input:5798cfc1321fc1446097b9a7 AND _exists_:ADFSUsername",
+                        "timerange": {
+                            "range": 86400,
+                            "type": "relative"
+                        },
+                        "trend": true
+                    },
+                    "description": "Number of failed authentication",
+                    "height": 1,
+                    "row": 1,
+                    "type": "SEARCH_RESULT_COUNT",
+                    "width": 1
+                },
+                {
+                    "cache_time": 60,
+                    "col": 2,
+                    "configuration": {
+                        "interval": "minute",
+                        "query": "gl2_source_input:5798cfc1321fc1446097b9a7 AND _exists_:ADFSUsername",
+                        "timerange": {
+                            "range": 86400,
+                            "type": "relative"
+                        }
+                    },
+                    "description": "Failed authentications over time",
+                    "height": 1,
+                    "row": 1,
+                    "type": "SEARCH_RESULT_CHART",
+                    "width": 1
+                },
+                {
+                    "cache_time": 60,
+                    "col": 3,
+                    "configuration": {
+                        "field": "ADFSUsername",
+                        "query": "gl2_source_input:5798cfc1321fc1446097b9a7 AND _exists_:ADFSUsername",
+                        "show_data_table": true,
+                        "show_pie_chart": false,
+                        "timerange": {
+                            "range": 86400,
+                            "type": "relative"
+                        }
+                    },
+                    "description": "Failed authentications",
+                    "height": 3,
+                    "row": 1,
+                    "type": "QUICKVALUES",
+                    "width": 1
+                },
+                {
+                    "cache_time": 10,
+                    "col": 0,
+                    "configuration": {
+                        "lower_is_better": false,
+                        "query": "gl2_source_input:5798cfc1321fc1446097b9a7 AND EventID:307",
+                        "timerange": {
+                            "range": 86400,
+                            "type": "relative"
+                        },
+                        "trend": false
+                    },
+                    "description": "Configuration Changes",
+                    "height": 0,
+                    "row": 0,
+                    "type": "SEARCH_RESULT_COUNT",
+                    "width": 0
+                },
+                {
+                    "cache_time": 10,
+                    "col": 0,
+                    "configuration": {
+                        "interval": "hour",
+                        "query": "gl2_source_input:5798cfc1321fc1446097b9a7 AND EventID:320",
+                        "timerange": {
+                            "range": 86400,
+                            "type": "relative"
+                        }
+                    },
+                    "description": "SAML Signature Failed",
+                    "height": 0,
+                    "row": 0,
+                    "type": "SEARCH_RESULT_CHART",
+                    "width": 0
+                }
+            ],
+            "description": "Key figures",
+            "title": "ADFS"
+        }
+    ],
+    "description": "== Contains ==\n* an input for ADFS event logs\n* a set of extractors for some events\n* a simple dashboard\n\n== nxlog fowarder configuration ==\n\t## AD FS logs to the right collector\n\n\t<Input in>\n\t    Module      im_msvistalog\n\t\tExec        if ($SourceName !~ /^AD FS/) drop();\n\t</Input>\n\n\t<Output out>\n\t    Module      om_udp\n\t    Host        your-graylog-server.youdomain.here\n\t    Port        5001\n\t    OutputType  GELF\n\t</Output>\n\n\t<Route 1>\n\t    Path        in => out\n\t</Route>\n\n\n== INSTALL ==\n\nYou must perform two search and replace before importing the JSON file in Graylog:\n- CONTOSO.COM by your full domain name\n-CONTOSO by your short domain name\nThat is because user may log in with UPN or not and the logs do not standardize the login representation.",
+    "grok_patterns": [],
+    "inputs": [
+        {
+            "configuration": {
+                "bind_address": "0.0.0.0",
+                "override_source": null,
+                "port": 5001,
+                "recv_buffer_size": 262144
+            },
+            "extractors": [
+                {
+                    "condition_type": "STRING",
+                    "condition_value": "The Federation Service could not authorize token issuance",
+                    "configuration": {
+                        "regex_value": "for caller '.+\\\\([^']+)'"
+                    },
+                    "converters": [],
+                    "cursor_strategy": "COPY",
+                    "order": 0,
+                    "source_field": "full_message",
+                    "target_field": "ADFSUsername",
+                    "title": "Get ADFS username on failed token issuance",
+                    "type": "REGEX"
+                },
+                {
+                    "condition_type": "STRING",
+                    "condition_value": "Token validation failed.",
+                    "configuration": {
+                        "regex_value": "Error message:\\s+.+\\\\([^-]*)-"
+                    },
+                    "converters": [],
+                    "cursor_strategy": "COPY",
+                    "order": 0,
+                    "source_field": "full_message",
+                    "target_field": "ADFSUsername",
+                    "title": "Get ADFS username on failed authentication",
+                    "type": "REGEX"
+                },
+                {
+                    "condition_type": "STRING",
+                    "condition_value": "The Federation Service could not authorize token issuance",
+                    "configuration": {
+                        "regex_value": "for the relying party '([^']+)'"
+                    },
+                    "converters": [],
+                    "cursor_strategy": "COPY",
+                    "order": 0,
+                    "source_field": "full_message",
+                    "target_field": "RelyingParty",
+                    "title": "Get ADFS relying party on failed token issuance",
+                    "type": "REGEX"
+                },
+                {
+                    "condition_type": "STRING",
+                    "condition_value": "Token validation failed",
+                    "configuration": {
+                        "regex_value": "Error message:\\s+(\\S+)@(?i)CONTOSO"
+                    },
+                    "converters": [],
+                    "cursor_strategy": "COPY",
+                    "order": 0,
+                    "source_field": "full_message",
+                    "target_field": "ADFSUsername",
+                    "title": "Get ADFS username on failed authentication with @CONTOSO logins",
+                    "type": "REGEX"
+                },
+                {
+                    "condition_type": "STRING",
+                    "condition_value": "Token validation failed",
+                    "configuration": {
+                        "regex_value": "Error message:\\s+(\\S+@\\S+\\.[a-z]{2,})"
+                    },
+                    "converters": [],
+                    "cursor_strategy": "COPY",
+                    "order": 0,
+                    "source_field": "full_message",
+                    "target_field": "ADFSUsername",
+                    "title": "Get ADFS username on failed authentication with email address",
+                    "type": "REGEX"
+                },
+                {
+                    "condition_type": "STRING",
+                    "condition_value": "The Federation Service configuration was changed.",
+                    "configuration": {
+                        "regex_value": "Account: (\\S+)"
+                    },
+                    "converters": [],
+                    "cursor_strategy": "COPY",
+                    "order": 0,
+                    "source_field": "full_message",
+                    "target_field": "Account",
+                    "title": "Extract ADFS configuration change owner",
+                    "type": "REGEX"
+                },
+                {
+                    "condition_type": "STRING",
+                    "condition_value": "The following user account has been locked out due to too many bad password attempts",
+                    "configuration": {
+                        "regex_value": "CONTOSO.COM\\\\([a-z]{4,6}\\d{2})"
+                    },
+                    "converters": [],
+                    "cursor_strategy": "COPY",
+                    "order": 0,
+                    "source_field": "full_message",
+                    "target_field": "ADFSUsername",
+                    "title": "Get ADFS username on account lockout (CONTOSO.COM\\username)",
+                    "type": "REGEX"
+                },
+                {
+                    "condition_type": "STRING",
+                    "condition_value": "The following user account has been locked out due to too many bad password attempts.",
+                    "configuration": {
+                        "regex_value": "Client IP:\\s+([0-9.]+|[a-zA-Z0-9:]+)"
+                    },
+                    "converters": [],
+                    "cursor_strategy": "COPY",
+                    "order": 0,
+                    "source_field": "full_message",
+                    "target_field": "ClientIP",
+                    "title": "Get ADFS client first IP on lockout account",
+                    "type": "REGEX"
+                },
+                {
+                    "condition_type": "STRING",
+                    "condition_value": "Token validation failed",
+                    "configuration": {
+                        "regex_value": "Client IP:\\s+([0-9.]+|[a-zA-Z0-9:]+)"
+                    },
+                    "converters": [],
+                    "cursor_strategy": "COPY",
+                    "order": 0,
+                    "source_field": "full_message",
+                    "target_field": "ClientIP",
+                    "title": "Get ADFS client first IP",
+                    "type": "REGEX"
+                },
+                {
+                    "condition_type": "STRING",
+                    "condition_value": "The following user account was in a locked out state and the correct password was just provided.",
+                    "configuration": {
+                        "regex_value": "CONTOSO.COM\\\\([a-z]{4,6}\\d{2})"
+                    },
+                    "converters": [],
+                    "cursor_strategy": "COPY",
+                    "order": 0,
+                    "source_field": "full_message",
+                    "target_field": "ADFSUsername",
+                    "title": "Get ADFS username on account unlocked",
+                    "type": "REGEX"
+                },
+                {
+                    "condition_type": "STRING",
+                    "condition_value": "The verification of the SAML message signature failed.",
+                    "configuration": {
+                        "regex_value": "Message issuer: https?://([-a-z0-9.]+) "
+                    },
+                    "converters": [],
+                    "cursor_strategy": "COPY",
+                    "order": 0,
+                    "source_field": "full_message",
+                    "target_field": "ADFSRelyingParty",
+                    "title": "Get ADFS relying party on SAML signature failed",
+                    "type": "REGEX"
+                }
+            ],
+            "global": true,
+            "static_fields": {},
+            "title": "ADFS",
+            "type": "org.graylog2.inputs.gelf.udp.GELFUDPInput"
+        }
+    ],
+    "name": "ADFS Insight",
+    "outputs": [],
+    "streams": []
+}
