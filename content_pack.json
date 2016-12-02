@@ -97,7 +97,7 @@
             "title": "ADFS"
         }
     ],
-    "description": "== Contains ==\n* an input for ADFS event logs\n* a set of extractors for some events\n* a simple dashboard\n\n== nxlog fowarder configuration ==\n\t## AD FS logs to the right collector\n\n\t<Input in>\n\t    Module      im_msvistalog\n\t\tExec        if ($SourceName !~ /^AD FS/) drop();\n\t</Input>\n\n\t<Output out>\n\t    Module      om_udp\n\t    Host        your-graylog-server.youdomain.here\n\t    Port        5001\n\t    OutputType  GELF\n\t</Output>\n\n\t<Route 1>\n\t    Path        in => out\n\t</Route>\n\n\n== INSTALL ==\n\nYou must perform two search and replace before importing the JSON file in Graylog:\n- CONTOSO.COM by your full domain name\n-CONTOSO by your short domain name\nThat is because user may log in with UPN or not and the logs do not standardize the login representation.",
+    "description": "## Contains ##\n* an input for ADFS event logs\n* a set of extractors for some events\n* a simple dashboard\n\n## nxlog fowarder configuration ##\n\n\t## AD FS logs to the right collector\n\n\t<Input in>\n\t    Module      im_msvistalog\n\t\tExec        if ($SourceName !~ /^AD FS/) drop();\n\t</Input>\n\n\t<Output out>\n\t    Module      om_udp\n\t    Host        your-graylog-server.youdomain.here\n\t    Port        5001\n\t    OutputType  GELF\n\t</Output>\n\n\t<Route 1>\n\t    Path        in => out\n\t</Route>\n\n\n## INSTALL ##\n\nYou must perform two search and replace before importing the JSON file in Graylog:\n- CONTOSO.COM by your full domain name\n- CONTOSO by your short domain name\nThat is because user may log in with UPN or not and the logs do not standardize the login representation.",
     "grok_patterns": [],
     "inputs": [
         {
